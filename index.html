@@ -1,0 +1,1275 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🦭 海豹汤</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+/* ══ BASE ══ */
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%}
+body{
+  font-family:'STSong','宋体',Georgia,serif;
+  background:#02060f;color:#aabfcc;
+  overflow-x:hidden;min-height:100%;
+}
+
+/* ══ PIXEL BACKGROUND ══ */
+.sea-bg{
+  position:fixed;inset:0;z-index:0;
+  background:url('bg.png') center center / cover no-repeat;
+}
+.sea-bg::before{
+  content:'';position:absolute;inset:0;z-index:1;
+  background:linear-gradient(90deg,#01040c 0%,#01040c 14%,transparent 26%);
+  pointer-events:none;
+}
+.sea-bg::after{
+  content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(
+    0deg,transparent,transparent 3px,rgba(0,0,0,0.06) 3px,rgba(0,0,0,0.06) 4px
+  );
+  pointer-events:none;
+}
+.sea-glow{display:none}
+
+/* ══ FOG OVERLAY ══ */
+#fog{
+  position:fixed;inset:0;z-index:600;
+  pointer-events:none;overflow:hidden;
+}
+.fog-deep{
+  position:absolute;inset:0;
+  background:#01040c;
+  opacity:0;
+  transition:opacity .5s ease;
+}
+.fog-mid,.fog-rays,.fog-light{display:none}
+.fog-vignette{
+  position:absolute;inset:0;
+  background:radial-gradient(ellipse 70% 60% at 50% 50%,transparent 30%,rgba(1,4,12,0.7) 100%);
+  opacity:0;
+  transition:opacity .45s ease;
+}
+#fog.fog-in .fog-deep{opacity:1}
+#fog.fog-in .fog-vignette{opacity:1}
+#fog.fog-out .fog-deep{opacity:0;transition:opacity .75s ease .1s}
+#fog.fog-out .fog-vignette{opacity:0;transition:opacity .6s ease .15s}
+
+/* ══ CONTENT ENTER ══ */
+.c-enter{animation:cEnter .48s ease both}
+@keyframes cEnter{
+  0%{opacity:0;transform:translateY(12px)}
+  100%{opacity:1;transform:translateY(0)}
+}
+
+/* ══ SCREENS ══ */
+.screen{display:none;position:relative;z-index:1;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+
+/* ══ CENTER WRAPPER ══ */
+.cx{width:100%;max-width:640px;margin:0 auto}
+
+/* ══ TITLE ══ */
+#s-title{
+  align-items:center;justify-content:center;
+  text-align:center;padding:48px 24px;
+}
+.t-seal{
+  width:160px;height:auto;display:block;margin:0 auto 26px;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 0 22px rgba(70,150,230,.5));
+  animation:tFloat 3.8s ease-in-out infinite;
+}
+.t-name{
+  font-size:60px;font-weight:900;letter-spacing:12px;
+  color:#bf7512;margin-bottom:8px;
+  text-shadow:4px 4px 0px rgba(0,0,0,.98),0 0 50px rgba(170,100,10,.3);
+}
+.t-en{
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;letter-spacing:4px;color:#1a3a56;margin-bottom:44px;
+  text-shadow:2px 2px 0px rgba(0,0,0,.95);
+}
+.t-lore{
+  max-width:360px;font-size:15px;line-height:2.3;
+  color:#4e6675;font-style:italic;margin-bottom:54px;
+  text-shadow:1px 1px 0px rgba(0,0,0,.9);
+}
+.t-lore em{color:#906a10}
+
+/* ══ PIXEL BUTTON ══ */
+.btn{
+  background:#6a1c0a;
+  color:#eed878;
+  border:2px solid #a02e0e;
+  border-bottom:4px solid #380c02;
+  border-right:4px solid #380c02;
+  padding:13px 38px;font-size:17px;border-radius:0;
+  cursor:pointer;letter-spacing:5px;font-family:inherit;font-weight:700;
+  box-shadow:4px 4px 0px rgba(0,0,0,.98);
+  transition:all .08s;position:relative;
+}
+.btn:hover{
+  background:#7c2010;color:#fff8a0;
+  transform:translate(-2px,-2px);
+  box-shadow:6px 6px 0px rgba(0,0,0,.98);
+}
+.btn:active{
+  transform:translate(3px,3px);
+  border-bottom:2px solid #380c02;
+  border-right:2px solid #380c02;
+  box-shadow:1px 1px 0px rgba(0,0,0,.98);
+}
+
+/* ══ RULES ══ */
+#s-rules{align-items:center;justify-content:center;padding:40px 24px}
+.glass{
+  background:rgba(2,6,16,0.94);
+  border:2px solid #172c46;
+  border-radius:0;padding:40px;
+  box-shadow:5px 5px 0px rgba(0,0,0,.98);
+}
+.rules-h{
+  font-size:18px;font-weight:700;letter-spacing:4px;color:#bf7512;
+  text-align:center;margin-bottom:36px;
+  text-shadow:3px 3px 0px rgba(0,0,0,.95);
+}
+.rule{display:flex;gap:14px;margin-bottom:24px;align-items:flex-start}
+.rule-ico{font-size:22px;flex-shrink:0;margin-top:2px}
+.rule-t{font-size:13px;line-height:2;color:#365870}
+.rule-t strong{color:#6e8898;display:block;margin-bottom:3px;font-size:14px}
+
+/* ══ ACT INTRO ══ */
+#s-act{align-items:center;justify-content:center;text-align:center;padding:40px 24px}
+.act-chip{
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;letter-spacing:4px;color:#1a3a56;
+  background:rgba(10,28,50,.8);border:2px solid #172c46;
+  padding:6px 16px;border-radius:0;display:inline-block;margin-bottom:20px;
+  box-shadow:3px 3px 0px rgba(0,0,0,.95);
+}
+.act-tit{
+  font-size:36px;font-weight:900;color:#bf7512;letter-spacing:3px;
+  text-shadow:4px 4px 0px rgba(0,0,0,.98);
+}
+.act-rule{width:36px;height:2px;background:#172c46;margin:22px auto}
+.act-art{
+  font-size:88px;display:block;margin:16px 0;
+  animation:tFloat 3.2s ease-in-out infinite;
+  filter:drop-shadow(0 5px 14px rgba(0,0,0,.65))
+}
+.act-desc{
+  max-width:450px;font-size:14px;line-height:2.25;
+  color:#385878;font-style:italic;margin:0 auto 44px;white-space:pre-line;
+  text-shadow:1px 1px 0px rgba(0,0,0,.9);
+}
+
+/* ══ GAME SCREEN ══ */
+#s-game{
+  align-items:stretch;justify-content:flex-start;
+  padding:0;overflow-y:auto;
+}
+.gw{
+  max-width:640px;width:100%;margin:0 auto;
+  padding:26px 18px 70px;
+  display:flex;flex-direction:column;gap:10px;
+}
+
+/* Progress */
+.prog-wrap{margin-bottom:2px}
+.prog-bar{
+  height:6px;background:rgba(10,26,48,.7);
+  border:1px solid #172c46;
+}
+.prog-fill{
+  height:100%;
+  background:linear-gradient(90deg,#4e1006,#aa5c08);
+  transition:width .8s cubic-bezier(.22,1,.36,1);
+}
+.prog-meta{
+  display:flex;justify-content:space-between;margin-top:6px;
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;letter-spacing:2px;color:#1a3a56;
+  text-shadow:1px 1px 0px rgba(0,0,0,.9);
+}
+
+/* Scene header */
+.scene-hd{
+  background:rgba(2,6,16,0.92);
+  border:2px solid #172c46;
+  border-radius:0;padding:20px 18px 16px;text-align:center;
+  box-shadow:4px 4px 0px rgba(0,0,0,.95);
+}
+.scene-emoji{
+  font-size:50px;letter-spacing:6px;display:block;
+  margin-bottom:10px;
+  filter:drop-shadow(0 4px 10px rgba(0,0,0,.7))
+}
+.scene-tag{
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;letter-spacing:3px;color:#1a3a56;margin-bottom:7px;
+}
+.scene-name{font-size:19px;font-weight:700;color:#aabfcc;letter-spacing:1px}
+
+/* Soup surface */
+.soup-wrap{
+  background:rgba(2,6,16,0.92);
+  border:2px solid #172c46;
+  border-left:4px solid #741e06;
+  border-radius:0;padding:17px 19px;
+  box-shadow:4px 4px 0px rgba(0,0,0,.95);
+}
+.soup-lbl{
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;letter-spacing:3px;color:#5a1604;margin-bottom:10px;
+}
+.soup-body{font-size:14px;line-height:2.1;color:#849ab0;white-space:pre-line}
+
+/* Questions */
+.q-lbl{
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;letter-spacing:3px;color:#1a3a56;margin-bottom:12px;
+}
+.q-list{display:flex;flex-direction:column;gap:6px}
+.qb{
+  background:rgba(3,10,24,0.93);
+  border:2px solid #172c46;
+  color:#517088;
+  padding:12px 16px;border-radius:0;
+  text-align:left;cursor:pointer;
+  font-size:13px;line-height:1.55;font-family:inherit;
+  transition:all .08s;
+  position:relative;overflow:hidden;
+  box-shadow:3px 3px 0px rgba(0,0,0,.95);
+}
+.qb::before{
+  content:'▶';position:absolute;left:10px;top:50%;
+  transform:translateY(-50%);
+  color:#741e06;font-size:9px;opacity:0;transition:opacity .1s;
+}
+.qb:hover:not(:disabled){
+  background:rgba(6,18,40,0.97);
+  border-color:#245270;color:#baccda;
+  transform:translate(-2px,-2px);
+  box-shadow:5px 5px 0px rgba(0,0,0,.95);
+  padding-left:26px;
+}
+.qb:hover:not(:disabled)::before{opacity:1}
+.qb:disabled{opacity:.26;cursor:default;transform:none;box-shadow:none}
+.qb.done{opacity:.28;background:rgba(2,7,18,.85);box-shadow:none}
+.qb.done::after{content:' ✓';color:#3d9a30;font-size:11px;margin-left:4px}
+
+/* Response */
+.resp{
+  background:rgba(1,4,13,0.97);
+  border:2px solid #172c46;
+  border-radius:0;padding:15px 17px;min-height:68px;
+  box-shadow:4px 4px 0px rgba(0,0,0,.95);
+}
+.resp-idle{color:#162434;font-style:italic;font-size:13px}
+.rtag{
+  display:inline-flex;align-items:center;gap:5px;
+  padding:4px 10px;border-radius:0;
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;margin-bottom:10px;
+  box-shadow:2px 2px 0px rgba(0,0,0,.95);
+}
+.ry{background:#09280a;color:#4bb848;border:2px solid #163814}
+.rn{background:#260808;color:#b83c3c;border:2px solid #3c1010}
+.rc{background:#081a32;color:#4882b0;border:2px solid #12283e}
+.rk{background:#190828;color:#8848c0;border:2px solid #2c1048}
+.rtxt{font-size:14px;line-height:1.9;color:#c0b080}
+
+/* Fragments */
+.frags-wrap{
+  background:rgba(2,6,16,0.90);
+  border:2px solid #172c46;
+  border-radius:0;padding:15px 17px;
+  box-shadow:4px 4px 0px rgba(0,0,0,.95);
+}
+.frags-lbl{
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;letter-spacing:3px;color:#1a3a56;margin-bottom:12px;
+}
+.fi-list{display:flex;flex-direction:column;gap:5px}
+.fi{
+  display:flex;align-items:flex-start;gap:10px;
+  font-size:12px;line-height:1.7;color:#2b4454;
+  padding:8px 10px;border-radius:0;
+  background:rgba(0,0,0,.24);
+  border:1px solid #0a1c2e;
+  transition:all .4s;
+}
+.fi.found{
+  color:#72aa68;
+  background:rgba(6,30,6,.3);
+  border-color:#163414;
+}
+.fi.pop{animation:fiPop .4s ease both}
+.fi-dot{
+  width:6px;height:6px;
+  background:#142030;flex-shrink:0;margin-top:5px;
+  border:1px solid #203040;transition:all .4s;
+}
+.fi.found .fi-dot{background:#429830;border-color:#245a14;box-shadow:0 0 5px rgba(44,148,28,.4)}
+
+/* Fish counter */
+.fish-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.fish-lbl{
+  font-family:'Press Start 2P',monospace;
+  font-size:6px;letter-spacing:2px;color:#16282e;margin-right:2px;
+}
+.fish{font-size:14px;opacity:.44;transition:all .25s;display:inline-block}
+.fish.used{opacity:.1;transform:scale(.78)}
+
+/* Reveal button */
+.btn-rev{
+  display:none;align-self:center;
+  background:#6a1c0a;color:#eed878;
+  border:2px solid #a02e0e;
+  border-bottom:4px solid #380c02;
+  border-right:4px solid #380c02;
+  padding:13px 34px;font-size:16px;border-radius:0;
+  cursor:pointer;letter-spacing:5px;font-family:inherit;font-weight:700;
+  box-shadow:4px 4px 0px rgba(0,0,0,.98);
+  transition:all .08s;margin-top:4px;
+  animation:revPulse 2.5s ease-in-out infinite;
+}
+.btn-rev:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0px rgba(0,0,0,.98)}
+.btn-rev.show{display:block}
+@keyframes revPulse{
+  0%,100%{box-shadow:4px 4px 0px rgba(0,0,0,.98)}
+  50%{box-shadow:4px 4px 0px rgba(0,0,0,.98),0 0 16px rgba(140,65,6,.45)}
+}
+
+/* ══ REVEAL SCREEN ══ */
+#s-reveal{align-items:center;justify-content:center;padding:48px 24px}
+.rev-tag{
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;letter-spacing:4px;color:#1a3a56;margin-bottom:22px;
+  text-shadow:2px 2px 0px rgba(0,0,0,.95);
+}
+.rev-card{
+  max-width:620px;width:100%;
+  background:rgba(1,4,13,0.97);
+  border:2px solid #172c46;
+  border-radius:0;padding:38px;
+  box-shadow:5px 5px 0px rgba(0,0,0,.98);margin-bottom:30px;
+}
+.rev-title{
+  font-size:15px;font-weight:700;color:#822c0a;letter-spacing:2px;
+  margin-bottom:22px;padding-bottom:14px;
+  border-bottom:2px solid #160c00;
+  display:flex;align-items:center;gap:10px;
+  text-shadow:2px 2px 0px rgba(0,0,0,.95);
+}
+.rev-title::before{content:'▌';color:#581c06;flex-shrink:0}
+.rev-body{font-size:14px;line-height:2.2;color:#6e90a0;white-space:pre-line}
+.cursor{
+  display:inline-block;width:8px;height:14px;
+  background:#a06e0c;animation:blink 1s infinite;
+  vertical-align:middle;margin-left:2px;
+}
+.btn-cont{
+  background:transparent;
+  border:2px solid #172c46;color:#2d5268;
+  padding:12px 30px;border-radius:0;cursor:pointer;
+  font-size:15px;letter-spacing:4px;font-family:inherit;font-weight:700;
+  display:none;transition:all .08s;
+  box-shadow:3px 3px 0px rgba(0,0,0,.95);
+}
+.btn-cont:hover{
+  background:rgba(6,20,44,.85);color:#aabfcc;
+  border-color:#245270;
+  transform:translate(-2px,-2px);
+  box-shadow:5px 5px 0px rgba(0,0,0,.95);
+}
+
+/* ══ FINAL MEET ══ */
+#s-meet{align-items:center;justify-content:center;text-align:center;padding:48px 24px}
+.meet-seal{
+  width:180px;height:auto;display:block;margin:0 auto 28px;
+  image-rendering:pixelated;
+  animation:tFloat 3.5s ease-in-out infinite;
+  filter:drop-shadow(0 0 26px rgba(40,165,210,.4))
+}
+.meet-tit{
+  font-size:24px;font-weight:900;color:#aabfcc;letter-spacing:2px;margin-bottom:6px;
+  text-shadow:4px 4px 0px rgba(0,0,0,.98);
+}
+.meet-sub{
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;letter-spacing:4px;color:#1a3a56;margin-bottom:32px;
+}
+.meet-dialog{
+  max-width:460px;
+  background:rgba(2,6,16,0.93);
+  border:2px solid #172c46;
+  border-radius:0;padding:24px 28px;
+  font-size:14px;line-height:2.1;color:#3e5870;
+  text-align:left;margin-bottom:38px;
+  box-shadow:4px 4px 0px rgba(0,0,0,.95);
+}
+.meet-dialog strong{color:#aabfcc}
+
+/* ══ ENDING ══ */
+#s-end{align-items:center;justify-content:center;text-align:center;padding:48px 24px}
+.end-seal{
+  width:160px;height:auto;display:block;margin:0 auto 24px;
+  image-rendering:pixelated;
+  animation:endBounce .58s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 26px rgba(40,185,65,.3))
+}
+.end-tit{
+  font-size:32px;font-weight:900;color:#44aa44;letter-spacing:6px;margin-bottom:8px;
+  text-shadow:4px 4px 0px rgba(0,0,0,.98);
+}
+.end-rule{width:38px;height:2px;background:#163616;margin:20px auto}
+.end-body{max-width:460px;font-size:14px;line-height:2.2;color:#3a5468;margin:0 auto 20px}
+.end-hi{
+  font-size:17px;font-weight:700;color:#44aa44;margin-bottom:8px;
+  text-shadow:3px 3px 0px rgba(0,0,0,.95);
+}
+.end-quote{
+  font-size:16px;color:#846008;line-height:2.1;
+  margin:22px auto;max-width:420px;
+  font-style:italic;
+  border-left:4px solid #361a02;
+  padding-left:18px;text-align:left;
+}
+.end-foot{
+  font-family:'Press Start 2P',monospace;
+  font-size:7px;letter-spacing:2px;color:#161e2c;margin-bottom:36px;
+  text-shadow:1px 1px 0px rgba(0,0,0,.9);
+}
+
+/* ══ SEAL POPUP ══ */
+#seal{
+  position:fixed;top:50%;left:50%;
+  transform:translate(-50%,-50%) scale(0.4);
+  display:flex;flex-direction:column-reverse;align-items:center;gap:14px;
+  z-index:700;opacity:0;pointer-events:none;
+  transition:opacity .42s cubic-bezier(.175,.885,.32,1.28),transform .42s cubic-bezier(.175,.885,.32,1.28);
+}
+#seal.in{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.seal-bub{
+  background:rgba(234,222,186,0.97);
+  color:#0c0804;padding:13px 20px;
+  border:3px solid #6e4804;
+  border-radius:0;
+  font-size:15px;line-height:1.6;max-width:220px;text-align:center;
+  box-shadow:5px 5px 0px rgba(0,0,0,.98);
+  font-style:italic;font-weight:700;
+  opacity:0;transform:scale(.78)translateY(8px);
+  transition:all .32s ease .1s;
+}
+#seal.in .seal-bub{opacity:1;transform:scale(1)translateY(0)}
+.seal-ico{
+  width:150px;height:auto;
+  image-rendering:pixelated;
+  filter:drop-shadow(0 6px 20px rgba(0,0,0,.85));
+  display:block;
+}
+.sbounce{animation:sealB .44s ease-in-out infinite alternate}
+
+/* ══ KEYFRAMES ══ */
+@keyframes tFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-15px)}}
+@keyframes endBounce{0%{transform:rotate(-10deg)scale(1)}100%{transform:rotate(10deg)scale(1.1)}}
+@keyframes sealB{0%{transform:translateY(0)rotate(-6deg)}100%{transform:translateY(-13px)rotate(6deg)}}
+@keyframes blink{0%,48%{opacity:1}50%,100%{opacity:0}}
+@keyframes fiPop{0%{transform:scale(.7);opacity:0}65%{transform:scale(1.04)}100%{transform:scale(1);opacity:1}}
+
+/* ══ PARTICLES CANVAS ══ */
+#particles{position:fixed;inset:0;z-index:0;pointer-events:none}
+
+/* ══ RIPPLE ══ */
+@keyframes ripple{0%{transform:scale(0);opacity:.5}100%{transform:scale(3);opacity:0}}
+.ripple-el{
+  position:absolute;
+  width:60px;height:60px;margin:-30px;
+  background:rgba(80,140,180,.18);
+  animation:ripple .5s linear forwards;
+  pointer-events:none;
+}
+
+/* ══ FRAGMENT GLOW ══ */
+@keyframes fragGlow{
+  0%,100%{box-shadow:none}
+  40%{box-shadow:0 0 10px rgba(44,148,28,.45)}
+}
+.fi.found.pop{animation:fiPop .4s ease both,fragGlow 1s ease .4s}
+
+/* ══ SHAKE ══ */
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-4px)}40%{transform:translateX(4px)}
+  60%{transform:translateX(-3px)}80%{transform:translateX(3px)}
+}
+.shake{animation:shake .35s ease}
+
+/* ══ SCROLLBAR ══ */
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:rgba(1,4,12,.95)}
+::-webkit-scrollbar-thumb{background:#172c46;border-radius:0}
+
+/* ══ RESPONSIVE ══ */
+@media(max-width:500px){
+  .t-name{font-size:44px;letter-spacing:8px}
+  .gw{padding:14px 12px 56px}
+  .rev-card{padding:26px 18px}
+}
+</style>
+</head>
+<body>
+
+<div class="sea-bg"></div>
+<div class="sea-glow"></div>
+<canvas id="particles"></canvas>
+
+<!-- ══ FOG ══ -->
+<div id="fog">
+  <div class="fog-mid"></div>
+  <div class="fog-deep"></div>
+  <div class="fog-rays"></div>
+  <div class="fog-light"></div>
+  <div class="fog-vignette"></div>
+</div>
+
+<!-- ══ SEAL POPUP ══ -->
+<div id="seal">
+  <div class="seal-bub" id="seal-bub">嗷——！</div>
+  <img class="seal-ico" id="seal-ico" src="海豹形象.png" alt="🦭">
+</div>
+
+<!-- ══════════ TITLE ══════════ -->
+<div class="screen active" id="s-title">
+  <img class="t-seal" src="海豹形象.png" alt="🦭">
+  <div class="t-name">海豹汤</div>
+  <div class="t-en">SEAL SOUP · 悬疑海龟汤闯关</div>
+  <p class="t-lore">
+    晨雾湾的灯塔，三天前熄灭了。<br>
+    守望者老林，消失了。<br>
+    一头会点头的海豹，在等你。<br><br>
+    <em>答对，它就嗷嗷嗷。</em>
+  </p>
+  <button class="btn" onclick="goRules()">开始调查</button>
+</div>
+
+<!-- ══════════ RULES ══════════ -->
+<div class="screen" id="s-rules">
+  <div class="cx">
+    <div class="glass c-enter">
+      <div class="rules-h">🦭 游戏规则</div>
+      <div class="rule">
+        <div class="rule-ico">🍵</div>
+        <div class="rule-t"><strong>什么是海龟汤？</strong>主持人描述神秘情节（汤面），你通过提问猜测完整故事（汤底）。</div>
+      </div>
+      <div class="rule">
+        <div class="rule-ico">❓</div>
+        <div class="rule-t"><strong>怎么提问？</strong>从选项中选择问题，系统回答「是」「否」或「接近了」。答对关键问题解锁线索碎片。</div>
+      </div>
+      <div class="rule">
+        <div class="rule-ico">🧩</div>
+        <div class="rule-t"><strong>怎么通关？</strong>集齐全部线索碎片，汤底可揭晓，故事推进到下一幕。</div>
+      </div>
+      <div class="rule">
+        <div class="rule-ico">🦭</div>
+        <div class="rule-t"><strong>豹先生是谁？</strong>答对关键问题，他从角落探头嗷嗷嗷庆祝。最终在海边，他亲自出最后一题。</div>
+      </div>
+      <div style="text-align:center;margin-top:34px">
+        <button class="btn" onclick="startGame()">明白了，出发</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════ ACT INTRO ══════════ -->
+<div class="screen" id="s-act">
+  <div class="act-chip" id="act-num">第一幕</div>
+  <div class="act-tit" id="act-tit">晨雾湾街头</div>
+  <div class="act-rule"></div>
+  <span class="act-art" id="act-art">🌅</span>
+  <p class="act-desc" id="act-desc"></p>
+  <button class="btn" onclick="enterLevel()">进入调查</button>
+</div>
+
+<!-- ══════════ GAME ══════════ -->
+<div class="screen" id="s-game" style="display:none">
+  <div class="gw" id="gw">
+
+    <div class="prog-wrap">
+      <div class="prog-bar"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+      <div class="prog-meta">
+        <span id="prog-act">第一幕 · 晨雾湾街头</span>
+        <span id="prog-pct">0%</span>
+      </div>
+    </div>
+
+    <div class="scene-hd">
+      <span class="scene-emoji" id="scene-emoji">🌅</span>
+      <div class="scene-tag" id="scene-tag">第一幕 · 第一关</div>
+      <div class="scene-name" id="scene-name">关卡标题</div>
+    </div>
+
+    <div class="soup-wrap">
+      <div class="soup-lbl">【汤面】</div>
+      <div class="soup-body" id="soup-body"></div>
+    </div>
+
+    <div>
+      <div class="q-lbl">选择你想问的问题</div>
+      <div class="q-list" id="q-list"></div>
+    </div>
+
+    <div class="resp" id="resp">
+      <div class="resp-idle">选择一个问题，开始调查……</div>
+    </div>
+
+    <div class="frags-wrap">
+      <div class="frags-lbl">线索碎片</div>
+      <div class="fi-list" id="fi-list"></div>
+    </div>
+
+    <div class="fish-row">
+      <span class="fish-lbl">提问</span>
+      <div id="fish-row"></div>
+    </div>
+
+    <div style="text-align:center;padding:6px 0 2px">
+      <button class="btn-rev" id="btn-rev" onclick="goReveal()">揭晓汤底 →</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════ REVEAL ══════════ -->
+<div class="screen" id="s-reveal">
+  <div class="rev-tag">【汤底揭晓】</div>
+  <div class="rev-card c-enter">
+    <div class="rev-title" id="rev-title">关卡标题</div>
+    <div class="rev-body" id="rev-body"></div>
+  </div>
+  <button class="btn-cont" id="btn-cont" onclick="afterReveal()">继续 →</button>
+</div>
+
+<!-- ══════════ FINAL MEET ══════════ -->
+<div class="screen" id="s-meet">
+  <img class="meet-seal" src="海豹形象.png" alt="🦭">
+  <div class="meet-tit">海豹先生现身了</div>
+  <div class="meet-sub">第三幕 · 日落滩</div>
+  <div class="meet-dialog c-enter">
+    你顺着石子上的方向走向海边。夕阳把海面染成橘红色。<br><br>
+    礁石上，一头圆滚滚的海豹正看着你。它缓缓抬起头——<br>
+    然后<strong>嗷</strong>了一声，向你微微点头。<br><br>
+    「你就是豹先生？」<br><br>
+    <strong>「嗷。」</strong><br><br>
+    你决定当作这是正常的。<br><br>
+    豹先生（字幕）：「老林让我给你出最后一道题。<strong>答对了，我带你去找他。</strong>」
+  </div>
+  <button class="btn" onclick="enterLevel()">准备好了</button>
+</div>
+
+<!-- ══════════ ENDING ══════════ -->
+<div class="screen" id="s-end">
+  <img class="end-seal" src="海豹形象.png" alt="🦭">
+  <div class="end-tit">案件终结</div>
+  <div class="end-rule"></div>
+  <p class="end-body">
+    远处，一道灯光从礁石后面亮起——那是一盏潜水手电筒。<br><br>
+    一个穿着潜水服的身影从海水里走出来，摘下面罩，<br>是一个头发花白的老人，他在笑。<br><br>
+    「你找到了。」老林说，「豹先生选对了传话人。」<br><br>
+    你和老林一起，带着水下取证的全部证据，<br>走进了晨雾湾警察局。
+  </p>
+  <div class="end-hi">灯塔，再次亮起来。</div>
+  <div class="end-quote">
+    「嗷嗷嗷嗷嗷——！！！！！」<br>
+    「你是一位很棒的侦探，也是一个很好的人。」<br>
+    ——豹先生
+  </div>
+  <div class="end-foot">《晨雾湾的灯塔守望者》完</div>
+  <button class="btn" onclick="resetGame()">再玩一次</button>
+</div>
+
+<script>
+// ══════════════════════════════════════
+// GAME DATA
+// ══════════════════════════════════════
+const ACTS=[
+  {
+    num:'第一幕',title:'晨雾湾街头',art:'🌅🏘️',
+    desc:'清晨，海雾未散。你拎着行李箱走进晨雾湾。\n街道上几乎没有行人，一个卖鱼的老婆婆在收摊，\n几只海鸥停在路灯上。\n公告栏上，贴着一张寻人启事。',
+    levels:[
+      {
+        title:'消失的寻人启事',art:'📋🌆🕵️',
+        surface:'镇上贴出了寻找老林的告示，第二天早上，告示消失了。\n没有人看到是谁撕走的，监控录像里也什么都没有。\n但镇长说：「这很好，说明他还在。」',
+        bottom:'老林在夜里自己把寻人启事撕走了——告示上有他的近照，\n他需要在镇上自由行动而不被认出来。\n\n镇长之所以说「这很好」，是因为这正是老林提前约定的暗号：\n如果寻人启事也消失了，说明他是主动藏起来的，\n按计划行事，不用担心。',
+        qs:[
+          {t:'告示是被老林自己撕走的吗？',tag:'y',r:'是。',fi:0},
+          {t:'撕告示是为了不让人认出他的脸吗？',tag:'y',r:'是，告示上有他的近照。',fi:1},
+          {t:'老林是被人强迫失踪的吗？',tag:'n',r:'否，他是主动的。',fi:-1},
+          {t:'告示消失是某种约定好的暗号吗？',tag:'k',r:'是！这正是关键所在。',fi:2},
+          {t:'镇长和老林提前有过约定吗？',tag:'y',r:'是，两人之间有秘密约定。',fi:2},
+          {t:'镇长知道老林藏在哪里吗？',tag:'n',r:'否，镇长只根据暗号判断他按计划行动。',fi:-1},
+        ],
+        frags:[
+          {t:'老林没有离开小镇，是主动藏起来的'},
+          {t:'老林撕掉告示，是为了不被人认出'},
+          {t:'告示消失是老林与镇长的暗号，代表计划进行中'},
+        ]
+      },
+      {
+        title:'卖鱼婆婆的话',art:'🐟👵🏘️',
+        surface:'你走向收摊的婆婆，问起老林的事。\n婆婆头也不抬，说：\n「老林每天早上都来买鱼。昨天，他买了平时两倍的量。」\n\n「他一个人住，买那么多鱼干什么？」\n\n婆婆笑了：「我不知道，但今天他没来。」',
+        bottom:'老林多买的鱼，是为他的老朋友准备的——\n一头他认识了七年的野生海豹，镇上人都叫它「豹先生」。\n\n老林藏身的地方，豹先生每天都会游来探望。\n那是一个只有老林知道入口的灯塔水下暗室。\n老林要在那里待一段时间，所以提前多备了口粮。',
+        qs:[
+          {t:'鱼是老林自己一个人吃的吗？',tag:'n',r:'否，不是他一个人吃的。',fi:-1},
+          {t:'他是在为藏匿处的某个同伴买鱼吗？',tag:'y',r:'是。',fi:0},
+          {t:'那个同伴是人类吗？',tag:'n',r:'否，不是人类。',fi:1},
+          {t:'是动物吗？',tag:'y',r:'是，是一种动物。',fi:1},
+          {t:'是海洋动物吗？',tag:'y',r:'是，生活在海里。',fi:1},
+          {t:'是海豹吗？',tag:'k',r:'是！！正是豹先生！嗷——！',fi:2},
+          {t:'老林要在藏匿处待很长时间吗？',tag:'y',r:'是，所以提前多买了食物。',fi:0},
+        ],
+        frags:[
+          {t:'老林买双倍的鱼，因为他要在藏处待很长时间'},
+          {t:'他有一个非人类同伴——是海洋动物'},
+          {t:'那就是豹先生，老林认识七年的野生海豹'},
+        ]
+      }
+    ]
+  },
+  {
+    num:'第二幕',title:'老林的灯塔小屋',art:'🏠🔦🌊',
+    desc:'你走到灯塔旁的小屋，门没有锁。\n推开门，一股咸湿的海风混着机油味扑来。\n屋里整洁，桌上有一杯已经凉透的咖啡，\n窗台上停着一只海鸥，见你进来，飞走了。',
+    levels:[
+      {
+        title:'凉掉的咖啡',art:'☕🔎🏠',
+        surface:'桌上那杯咖啡，还剩大半杯，已经凉透。\n警察的报告说「屋内无异常」。\n但一位老警探摸了摸咖啡杯，走出屋子，\n马上打了个电话，态度明显变了。',
+        bottom:'咖啡的温度说明它在深夜2点左右就凉了，\n老林大约在那之前就已悄悄离开——\n这与目击者描述的「灯塔在凌晨3点熄灭」时间线吻合。\n\n老警探记起老林曾告诉他「海湾有问题，我在查」，\n当即意识到这是一场有计划的伪装失踪。\n他打电话是通知信任的同僚：\n暂时搁置大规模搜查，给老林留出时间。',
+        qs:[
+          {t:'咖啡的温度是重要线索吗？',tag:'y',r:'是，非常重要。',fi:0},
+          {t:'咖啡说明老林是在深夜离开的吗？',tag:'y',r:'是，在灯塔熄灭之前。',fi:0},
+          {t:'老警探打电话是通知上级的吗？',tag:'n',r:'否，不是上级。',fi:-1},
+          {t:'老警探和老林私下认识吗？',tag:'y',r:'是，两人有私交。',fi:1},
+          {t:'老警探猜到老林是主动失踪的吗？',tag:'k',r:'是！他从咖啡和过往对话推断出来的。',fi:1},
+          {t:'老警探是在帮老林拖延搜查时间吗？',tag:'k',r:'是！这正是他打那通电话的目的。',fi:2},
+        ],
+        frags:[
+          {t:'咖啡说明老林在凌晨3点之前就已秘密离开'},
+          {t:'老警探推断出老林是主动藏匿'},
+          {t:'老警探配合老林，暗中放缓了搜查力度'},
+        ]
+      },
+      {
+        title:'书桌上的日记',art:'📔💡🔍',
+        surface:'你在老林桌屉里找到一本日记，最后几页被撕掉了。\n翻到残留的最后一页，上面只有一行字：\n\n「桶，12，NW，30。豹先生知道路。」\n\n你完全看不懂这是什么意思。',
+        bottom:'这行字是老林留下的坐标记录：\n灯塔西北方向（NW）水下30米处，\n发现了12个非法倾倒的有毒废料桶。\n\n老林是潜水时偶然发现的。\n「豹先生知道路」——那头海豹每天出没的路线\n正好经过那片区域，跟着豹先生游，就能找到那里。\n\n老林撕掉后几页，是为了防止暴露更多细节。',
+        qs:[
+          {t:'这是某种位置或坐标信息吗？',tag:'y',r:'是。',fi:0},
+          {t:'「NW」是西北方向的意思吗？',tag:'y',r:'是，指灯塔西北方向。',fi:0},
+          {t:'「30」是水下深度（米）吗？',tag:'y',r:'是，水下30米。',fi:0},
+          {t:'「桶」指的是真实存在的桶吗？',tag:'y',r:'是。',fi:1},
+          {t:'「12」是桶的数量吗？',tag:'y',r:'是，共12个桶。',fi:1},
+          {t:'桶里装的是有毒废料吗？',tag:'k',r:'是！！这就是案件核心。',fi:2},
+          {t:'老林是潜水时发现这些桶的吗？',tag:'y',r:'是，偶然发现的。',fi:2},
+        ],
+        frags:[
+          {t:'「NW，30」= 灯塔西北方向，水下30米'},
+          {t:'「桶，12」= 非法倾倒在那里的12个桶'},
+          {t:'桶里是有毒废料，这是老林要揭露的真相'},
+        ]
+      },
+      {
+        title:'窗台上的羽毛',art:'🪶🌊🧭',
+        surface:'你注意到窗台上有三根海鸥羽毛，\n整整齐齐排成一排，显然不是自然摆放的。\n旁边压着一枚小石子，\n你拿起来，发现底面刻着一个小小的方向符号，\n指向海边。',
+        bottom:'这是老林故意留给调查者的引导信息。\n三根羽毛代表三条线索\n（寻人启事消失 / 日记记录 / 石子指引）。\n石子上的刻痕指向海边——豹先生出没的礁石区。\n\n老林预料到会有外来调查者进入小屋，\n他希望那个人能找到豹先生，\n再由豹先生引路，最终找到他本人。\n\n你，就是老林和豹先生一直在等待的那个传话人。',
+        qs:[
+          {t:'羽毛是老林故意摆放的吗？',tag:'y',r:'是，刻意安排的。',fi:0},
+          {t:'这是给某个特定的人看的吗？',tag:'y',r:'是，给会来调查的人。',fi:0},
+          {t:'三根羽毛各自代表一条线索吗？',tag:'k',r:'是！非常接近了。',fi:1},
+          {t:'石子指向的方向是海边吗？',tag:'y',r:'是。',fi:1},
+          {t:'老林希望侦探去海边找豹先生吗？',tag:'k',r:'是！这正是他的计划。',fi:2},
+          {t:'老林是在等一个可以信任的传话人吗？',tag:'k',r:'是！而那个人就是你。嗷——！',fi:2},
+        ],
+        frags:[
+          {t:'羽毛和石子是老林预留给调查者的引导'},
+          {t:'三根羽毛对应三条线索，石子指向海边'},
+          {t:'老林在等一个传话人——来和豹先生接头'},
+        ]
+      }
+    ]
+  },
+  {
+    num:'第三幕',title:'日落滩 · 最终章',art:'🌅🦭',
+    desc:'',
+    levels:[
+      {
+        title:'海豹先生的最后一题',art:'🌅🦭🌊',
+        surface:'豹先生（字幕）：\n「老林让我给你出最后一道题。」\n「答对了，我带你去找他。」\n\n──────────────────\n\n一个男人死了。\n\n法医报告：死于溺水。\n但他的肺里，没有水。',
+        bottom:'受害者在海湾附近发现了非法倾倒的有毒废料，打算举报。\n幕后黑手将他诱骗进一个水下密封舱，关紧舱门——\n他被困在密封空间里，空气耗尽，因缺氧窒息而死。\n所以肺里没有水。他死前并没有溺水，但死亡地点在水下。\n\n这个手法，老林七年前就见过。\n那次，豹先生发现了密封舱，在外面不断撞击舱门，\n引起了救援，老林把那个人救了出来。\n但幕后黑手始终逍遥法外。\n\n如今，老林藏进灯塔暗室，\n正是为了收集证据，彻底了结这件事。',
+        qs:[
+          {t:'他是在水里溺死的吗？',tag:'n',r:'否，不在水中死亡。',fi:-1},
+          {t:'他是被人谋杀的吗？',tag:'y',r:'是。',fi:0},
+          {t:'凶手利用了密封空间吗？',tag:'y',r:'是，一个密封的空间。',fi:1},
+          {t:'他是被困在密封空间里窒息死亡的吗？',tag:'k',r:'是！！肺里没水正是因为他死于缺氧，不是溺水。',fi:1},
+          {t:'那个密封空间在水下吗？',tag:'y',r:'是，在水下。',fi:1},
+          {t:'这和老林正在调查的有毒废料案有关吗？',tag:'y',r:'是，直接相关。',fi:2},
+          {t:'老林七年前就见过这种手法吗？',tag:'k',r:'是！豹先生激动地嗷了起来——！',fi:2},
+          {t:'豹先生当年帮助救出了用同样方法被害的人吗？',tag:'k',r:'是！正是如此！嗷嗷嗷——！！',fi:2},
+        ],
+        frags:[
+          {t:'他是被人谋杀的，不是意外溺水'},
+          {t:'凶手将他锁在水下密封舱，他因缺氧窒息而死'},
+          {t:'这是老林七年前就见过的手法，豹先生当年帮助救出了受害者'},
+        ]
+      }
+    ]
+  }
+]
+
+// ══════════════════════════════════════
+// STATE
+// ══════════════════════════════════════
+let G={ai:0,li:0,found:new Set(),asked:new Set(),fish:0}
+const ca=()=>ACTS[G.ai]
+const cl=()=>ACTS[G.ai].levels[G.li]
+
+// ══════════════════════════════════════
+// SCREEN HELPERS
+// ══════════════════════════════════════
+function showS(id){
+  document.querySelectorAll('.screen').forEach(s=>{
+    s.classList.remove('active')
+    s.style.display=''
+  })
+  const el=document.getElementById(id)
+  el.style.display='flex'
+  el.classList.add('active')
+  // Scroll to top for game screen
+  if(id==='s-game')el.scrollTop=0
+}
+
+const delay=ms=>new Promise(r=>setTimeout(r,ms))
+
+async function fogTransition(cb){
+  const fog=document.getElementById('fog')
+  // Fog sweeps in
+  fog.classList.remove('fog-out')
+  fog.classList.add('fog-in')
+  await delay(660)
+  // Execute content switch
+  cb()
+  await delay(180)
+  // Fog parts with depth reveal
+  fog.classList.remove('fog-in')
+  fog.classList.add('fog-out')
+  await delay(1000)
+  fog.classList.remove('fog-out')
+}
+
+// ══════════════════════════════════════
+// FLOW
+// ══════════════════════════════════════
+function goRules(){
+  initAudio();sfx('click')
+  fogTransition(()=>showS('s-rules'))
+}
+
+function startGame(){
+  initAudio();sfx('click')
+  G={ai:0,li:0,found:new Set(),asked:new Set(),fish:0}
+  fogTransition(()=>showActIntro())
+}
+
+function resetGame(){startGame()}
+
+function showActIntro(){
+  const a=ca()
+  document.getElementById('act-num').textContent=a.num
+  document.getElementById('act-tit').textContent=a.title
+  document.getElementById('act-art').textContent=a.art
+  document.getElementById('act-desc').textContent=a.desc
+  if(G.ai===2){showS('s-meet')}
+  else{showS('s-act')}
+}
+
+function enterLevel(){
+  sfx('click')
+  G.found=new Set();G.asked=new Set();G.fish=0
+  renderLevel()
+  fogTransition(()=>showS('s-game'))
+}
+
+// ══════════════════════════════════════
+// RENDER
+// ══════════════════════════════════════
+const CHN_NUM=['一','二','三','四','五','六','七']
+
+function renderLevel(){
+  const a=ca(),lv=cl()
+
+  // Progress
+  let tot=0,done=0
+  ACTS.forEach((ac,ai)=>ac.levels.forEach((_,li)=>{
+    tot++;if(ai<G.ai||(ai===G.ai&&li<G.li))done++
+  }))
+  const pct=Math.round(done/tot*100)
+  document.getElementById('prog').style.width=pct+'%'
+  document.getElementById('prog-act').textContent=`${a.num} · ${a.title}`
+  document.getElementById('prog-pct').textContent=pct+'%'
+
+  document.getElementById('scene-emoji').textContent=lv.art
+  document.getElementById('scene-tag').textContent=`${a.num} · 第${CHN_NUM[G.li]||G.li+1}关`
+  document.getElementById('scene-name').textContent=lv.title
+  document.getElementById('soup-body').textContent=lv.surface
+
+  // Fragments
+  const fl=document.getElementById('fi-list');fl.innerHTML=''
+  lv.frags.forEach((_,i)=>{
+    const d=document.createElement('div')
+    d.className='fi'+(G.found.has(i)?' found':'')
+    d.id='fi'+i
+    d.innerHTML=`<div class="fi-dot"></div><div>${G.found.has(i)?lv.frags[i].t:'???'}</div>`
+    fl.appendChild(d)
+  })
+
+  renderFish();renderQs()
+  document.getElementById('resp').innerHTML='<div class="resp-idle">选择一个问题，开始调查……</div>'
+  document.getElementById('btn-rev').classList.remove('show')
+
+  // Animate content in
+  const gw=document.getElementById('gw')
+  gw.classList.remove('c-enter')
+  void gw.offsetWidth
+  gw.classList.add('c-enter')
+}
+
+function renderFish(){
+  const max=cl().qs.length
+  const row=document.getElementById('fish-row');row.innerHTML=''
+  for(let i=0;i<max;i++){
+    const s=document.createElement('span')
+    s.className='fish'+(i<G.fish?' used':'')
+    s.textContent='🐟'
+    row.appendChild(s)
+  }
+}
+
+function renderQs(){
+  const lv=cl(),list=document.getElementById('q-list');list.innerHTML=''
+  lv.qs.forEach((q,i)=>{
+    const b=document.createElement('button')
+    b.className='qb'+(G.asked.has(i)?' done':'')
+    b.textContent=q.t;b.disabled=G.asked.has(i)
+    b.onclick=()=>ask(i)
+    list.appendChild(b)
+  })
+}
+
+// ══════════════════════════════════════
+// ASK
+// ══════════════════════════════════════
+function ask(qi){
+  initAudio()
+  const lv=cl(),q=lv.qs[qi]
+  G.asked.add(qi);G.fish++
+
+  // Ripple on clicked button
+  const btns=document.querySelectorAll('.qb')
+  const clickedBtn=btns[qi]
+  if(clickedBtn){
+    const rp=document.createElement('span');rp.className='ripple-el'
+    rp.style.cssText='left:50%;top:50%;position:absolute'
+    clickedBtn.style.position='relative';clickedBtn.appendChild(rp)
+    setTimeout(()=>rp.remove(),600)
+  }
+
+  const tags={y:['是','ry'],n:['否','rn'],c:['接近了','rc'],k:['关键线索！','rk']}
+  const[tl,tc]=tags[q.tag]||['是','ry']
+  const respEl=document.getElementById('resp')
+  respEl.innerHTML=`<span class="rtag ${tc}">${tl}</span><div class="rtxt">${q.r}</div>`
+
+  // Sound feedback by answer type
+  sfx({y:'yes',n:'no',c:'close',k:'key'}[q.tag]||'yes')
+
+  // Shake on 否
+  if(q.tag==='n'){
+    respEl.classList.remove('shake');void respEl.offsetWidth;respEl.classList.add('shake')
+    setTimeout(()=>respEl.classList.remove('shake'),400)
+  }
+
+  let newFrag=false
+  if(q.fi>=0&&!G.found.has(q.fi)){
+    G.found.add(q.fi);newFrag=true
+    const el=document.getElementById('fi'+q.fi)
+    if(el){
+      el.className='fi found pop'
+      el.innerHTML=`<div class="fi-dot"></div><div>${lv.frags[q.fi].t}</div>`
+      setTimeout(()=>el.classList.remove('pop'),520)
+    }
+  }
+
+  renderFish();renderQs()
+  if(newFrag)showSeal(q.tag==='k'?'key':'norm')
+
+  if(G.found.size===lv.frags.length){
+    setTimeout(()=>{
+      document.getElementById('btn-rev').classList.add('show')
+      sfx('all')
+      if(!newFrag)showSeal('big')
+    },480)
+  }
+}
+
+// ══════════════════════════════════════
+// REVEAL
+// ══════════════════════════════════════
+function goReveal(){
+  sfx('fog')
+  const lv=cl()
+  document.getElementById('rev-title').textContent=lv.title
+  document.getElementById('rev-body').innerHTML=''
+  document.getElementById('btn-cont').style.display='none'
+  fogTransition(()=>{
+    showS('s-reveal');sfx('reveal')
+    typewriter(document.getElementById('rev-body'),lv.bottom,20,()=>{
+      document.getElementById('btn-cont').style.display='inline-block'
+      showSeal('big')
+    },true)
+  })
+}
+
+function afterReveal(){
+  sfx('fog')
+  const a=ca()
+  if(G.li<a.levels.length-1){
+    G.li++;G.found=new Set();G.asked=new Set();G.fish=0
+    renderLevel()
+    fogTransition(()=>{showS('s-game');sfx('click')})
+  } else if(G.ai<ACTS.length-1){
+    G.ai++;G.li=0
+    fogTransition(()=>showActIntro())
+  } else {
+    fogTransition(()=>{showS('s-end');sfx('end');showSeal('celebrate')})
+  }
+}
+
+// ══════════════════════════════════════
+// TYPEWRITER
+// ══════════════════════════════════════
+function typewriter(el,text,speed,cb,withSound=false){
+  const lines=text.split('\n');let li=0,ci=0;el.innerHTML=''
+  function tick(){
+    if(li>=lines.length){if(cb)cb();return}
+    if(ci<lines[li].length){
+      const c=lines[li][ci]
+      el.innerHTML+=c==='<'?'&lt;':c==='>'?'&gt;':c==='&'?'&amp;':c
+      if(withSound&&ci%2===0&&c.trim()!=='')typeClick()
+      ci++;setTimeout(tick,speed)
+    }else{
+      el.innerHTML+='<br>';li++;ci=0
+      setTimeout(tick,speed*.3)
+    }
+  }
+  tick()
+}
+
+// ══════════════════════════════════════
+// AUDIO ENGINE  (Web Audio API, no deps)
+// ══════════════════════════════════════
+let AC=null,oceanGain=null
+function initAudio(){
+  if(AC)return
+  try{AC=new(window.AudioContext||window.webkitAudioContext)()}catch(e){}
+}
+
+function startOcean(){
+  if(!AC)return
+  const sr=AC.sampleRate
+  const master=AC.createGain();master.gain.value=0.75;master.connect(AC.destination);oceanGain=master
+
+  // Low horror drones — tritone interval (devil's interval): 40Hz + 56.5Hz
+  ;[40,56.5].forEach((freq,i)=>{
+    const o=AC.createOscillator(),g=AC.createGain()
+    o.type=i===0?'sawtooth':'sine';o.frequency.value=freq
+    g.gain.value=i===0?0.055:0.032
+    const lfo=AC.createOscillator(),lg=AC.createGain()
+    lfo.frequency.value=0.05+i*0.03;lg.gain.value=0.9
+    lfo.connect(lg);lg.connect(o.frequency)
+    o.connect(g);g.connect(master);o.start();lfo.start()
+  })
+
+  // Eerie mid tone with tremolo
+  const mo=AC.createOscillator(),mg=AC.createGain()
+  const mlfo=AC.createOscillator(),mlg=AC.createGain()
+  mo.type='sine';mo.frequency.value=220
+  mlfo.frequency.value=0.12;mlg.gain.value=0.009
+  mlfo.connect(mlg);mlg.connect(mg.gain);mg.gain.value=0.013
+  mo.connect(mg);mg.connect(master);mo.start();mlfo.start()
+
+  // Dark filtered noise
+  const nb=AC.createBuffer(1,sr*5,sr);const nd=nb.getChannelData(0);let lp=0
+  for(let i=0;i<nd.length;i++){lp=lp*.985+(Math.random()*2-1)*.015;nd[i]=lp*10}
+  const ns=AC.createBufferSource();ns.buffer=nb;ns.loop=true
+  const nf=AC.createBiquadFilter();nf.type='lowpass';nf.frequency.value=160;nf.Q.value=1.2
+  const ng=AC.createGain();ng.gain.value=0.02
+  ns.connect(nf);nf.connect(ng);ng.connect(master);ns.start()
+
+  // Occasional dissonant low stabs (Bb/Db chromatic tones)
+  ;(function haunt(){
+    if(!AC)return
+    const now=AC.currentTime
+    const freqs=[110,116.5,130.8,138.6]
+    const f=freqs[Math.floor(Math.random()*freqs.length)]
+    const ho=AC.createOscillator(),hg=AC.createGain()
+    ho.type='triangle';ho.frequency.value=f
+    hg.gain.setValueAtTime(0,now);hg.gain.linearRampToValueAtTime(0.038,now+1.8);hg.gain.linearRampToValueAtTime(0,now+4.5)
+    ho.connect(hg);hg.connect(master);ho.start(now);ho.stop(now+4.8)
+    setTimeout(haunt,7000+Math.random()*9000)
+  })()
+
+  // Periodic deep heartbeat thud
+  ;(function thud(){
+    if(!AC)return
+    const now=AC.currentTime,o=AC.createOscillator(),g=AC.createGain()
+    o.type='sine';o.frequency.setValueAtTime(55,now);o.frequency.exponentialRampToValueAtTime(22,now+.3)
+    g.gain.setValueAtTime(.16,now);g.gain.exponentialRampToValueAtTime(.0001,now+.34)
+    o.connect(g);g.connect(master);o.start(now);o.stop(now+.38)
+    setTimeout(thud,3800+Math.random()*3500)
+  })()
+}
+
+function sfx(type){
+  if(!AC)return
+  const t=AC.currentTime
+  const osc=(type,freq,end,dur,vol=0.12,wave='sine')=>{
+    const o=AC.createOscillator(),g=AC.createGain()
+    o.type=wave;o.connect(g);g.connect(AC.destination)
+    o.frequency.setValueAtTime(freq,t);if(end)o.frequency.exponentialRampToValueAtTime(end,t+dur)
+    g.gain.setValueAtTime(vol,t);g.gain.exponentialRampToValueAtTime(.0001,t+dur+.05)
+    o.start(t);o.stop(t+dur+.08)
+  }
+  const chord=(freqs,startVol=0.1,dur=0.9)=>freqs.forEach((f,i)=>{
+    const o=AC.createOscillator(),g=AC.createGain()
+    o.type='sine';o.frequency.value=f;o.connect(g);g.connect(AC.destination)
+    const st=t+i*.07
+    g.gain.setValueAtTime(0,st);g.gain.linearRampToValueAtTime(startVol,st+.05)
+    g.gain.setValueAtTime(startVol,st+.15);g.gain.exponentialRampToValueAtTime(.0001,st+dur)
+    o.start(st);o.stop(st+dur+.1)
+  })
+
+  switch(type){
+    case 'click': osc('sine',700,350,.1,.1);break
+    case 'yes':   osc('sine',880,1040,.35,.1);break
+    case 'no':    osc('triangle',160,90,.22,.1,'sawtooth');break
+    case 'close': chord([523,659],.08,.65);break
+    case 'key':   chord([523,659,784],.1,.9);break
+    case 'all':   chord([261,330,392,523],.12,1.3);break
+    case 'seal': {
+      // Three "嗷嗷嗷" barks in quick succession
+      for(let b=0;b<3;b++){
+        const bt=t+b*.32
+        const o=AC.createOscillator(),g=AC.createGain(),ws=AC.createWaveShaper()
+        const cv=new Float32Array(256);for(let i=0;i<256;i++){const x=i/128-1;cv[i]=(Math.PI+18)*x/(Math.PI+18*Math.abs(x))}
+        ws.curve=cv;o.type='sawtooth'
+        o.connect(ws);ws.connect(g);g.connect(AC.destination)
+        o.frequency.setValueAtTime(220,bt);o.frequency.linearRampToValueAtTime(430,bt+.15);o.frequency.exponentialRampToValueAtTime(285,bt+.4)
+        g.gain.setValueAtTime(.22,bt);g.gain.setValueAtTime(.22,bt+.15);g.gain.exponentialRampToValueAtTime(.0001,bt+.5)
+        o.start(bt);o.stop(bt+.54)
+      }
+      break
+    }
+    case 'fog': {
+      // Low whoosh
+      const buf=AC.createBuffer(1,AC.sampleRate*.8,AC.sampleRate)
+      const d=buf.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1
+      const s=AC.createBufferSource();s.buffer=buf
+      const f=AC.createBiquadFilter();f.type='bandpass';f.frequency.setValueAtTime(300,t);f.frequency.exponentialRampToValueAtTime(120,t+.8);f.Q.value=1.5
+      const g=AC.createGain();g.gain.setValueAtTime(.0001,t);g.gain.linearRampToValueAtTime(.12,t+.15);g.gain.exponentialRampToValueAtTime(.0001,t+.78)
+      s.connect(f);f.connect(g);g.connect(AC.destination);s.start(t)
+      break
+    }
+    case 'reveal': chord([392,494,587,740],.09,1.8);break
+    case 'end':   chord([261,330,392,494,587],.13,2.5);break
+  }
+}
+
+function typeClick(){
+  if(!AC)return
+  const t=AC.currentTime,o=AC.createOscillator(),g=AC.createGain()
+  o.type='square';o.frequency.value=2200+Math.random()*400
+  o.connect(g);g.connect(AC.destination)
+  g.gain.setValueAtTime(.022,t);g.gain.exponentialRampToValueAtTime(.0001,t+.04)
+  o.start(t);o.stop(t+.045)
+}
+
+// ══════════════════════════════════════
+// PARTICLE SYSTEM
+// ══════════════════════════════════════
+function initParticles(){
+  const cv=document.getElementById('particles')
+  const cx=cv.getContext('2d')
+  let W,H,pts=[]
+  function resize(){
+    W=cv.width=innerWidth;H=cv.height=innerHeight
+    pts=Array.from({length:55},()=>mkPt())
+  }
+  function mkPt(){
+    return{
+      x:Math.random()*W,y:Math.random()*H,
+      r:Math.random()*1.4+.3,
+      vx:(Math.random()-.5)*.22,
+      vy:-(Math.random()*.18+.04),
+      op:Math.random()*.32+.06,
+      ph:Math.random()*Math.PI*2,
+      ps:Math.random()*.018+.005,
+      hue:Math.random()>0.85?40:200  // mostly blue, rare warm
+    }
+  }
+  function draw(){
+    cx.clearRect(0,0,W,H)
+    pts.forEach(p=>{
+      p.ph+=p.ps
+      const o=p.op*(.55+.45*Math.sin(p.ph))
+      cx.beginPath();cx.arc(p.x,p.y,p.r,0,Math.PI*2)
+      cx.fillStyle=`hsla(${p.hue},65%,70%,${o})`;cx.fill()
+      p.x+=p.vx;p.y+=p.vy
+      if(p.y<-8){Object.assign(p,mkPt(),{y:H+8})}
+      if(p.x<-8)p.x=W+8;if(p.x>W+8)p.x=-8
+    })
+    requestAnimationFrame(draw)
+  }
+  resize();window.addEventListener('resize',resize);draw()
+}
+
+// ══════════════════════════════════════
+// SEAL
+// ══════════════════════════════════════
+const SM={
+  norm:['嗷——！答对了！','嗷嗷，继续！','嗷！就是这样！','嗷——好样的！'],
+  key:['嗷嗷嗷——！！关键线索！','嗷嗷！！太厉害了！','嗷——！！非常重要！'],
+  big:['嗷嗷嗷——！！！全找到了！','嗷——！！！太棒了！','嗷嗷嗷！！全部解锁！'],
+  celebrate:['嗷——！！！！！','恭喜！嗷嗷嗷！！！','嗷嗷嗷嗷嗷——！！！']
+}
+let sT=null
+function showSeal(mood){
+  clearTimeout(sT);sfx('seal')
+  const msgs=SM[mood]||SM.norm
+  document.getElementById('seal-bub').textContent=msgs[Math.floor(Math.random()*msgs.length)]
+  document.getElementById('seal-ico').className='seal-ico sbounce'
+  document.getElementById('seal').classList.add('in')
+  sT=setTimeout(()=>{
+    document.getElementById('seal').classList.remove('in')
+    document.getElementById('seal-ico').className='seal-ico'
+  },mood==='celebrate'?6500:3400)
+}
+
+// ══════════════════════════════════════
+// INIT
+// ══════════════════════════════════════
+initParticles()
+</script>
+</body>
+</html>
